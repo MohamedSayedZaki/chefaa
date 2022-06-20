@@ -1,0 +1,44 @@
+{# templates/products/index.html.twig #}
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<h3 style="text-align:center;">Search For Products</h3>
+<form method="post" style="text-align:center;margin:30px;">
+    <input type="text"
+           name="search"
+           class="form-control"
+           placeholder="Search..."
+           style="width:300px;display:inline-block;"
+    >
+        <button type="submit" class="btn btn-outline-secondary" style="display:inline-block;">
+            <span class="fa fa-search"></span> Search
+        </button>
+</form> 
+
+{% if products %}
+    <div class="table-responsive">
+      <table class="table">
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Quantity</th>
+        </tr>
+    {% for product in products %}
+        <tr class="block">
+            <td class="in-block"><a href="get/{{ product.id }}" target="_blank">{{ product.id }}</a></td>
+            <td class="in-block">{{ product.title }}</td>
+            <td class="in-block">{{ product.description }}</td>
+            <td class="in-block">{{ product.price }}</td>
+            <td class="in-block">{{ product.quantity }}</td>
+        <tr>
+    {% endfor %}
+      </table>
+</div>
+{% endif %}

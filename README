@@ -1,0 +1,125 @@
+#Application Structure
+  - chefaa
+    -docker
+      -mysql
+      -nginx
+      -php
+    -site
+      -symfony src code
+    -docker-compose.yml
+
+#docker containers 
+version: "2"
+services:
+  # application tier
+  app:
+    build: ./docker/php/
+    container_name: app-php
+    working_dir: /var/www/site
+    volumes:
+      - ./site:/var/www/site
+    networks:
+      - app-network
+
+  # Nginx service
+  nginx:
+    image: nginx:alpine
+    container_name: app-nginx
+    working_dir: /var/www/site
+    ports:
+      - 8001:80
+    volumes:
+      - ./site:/var/www/site
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - app-network
+
+  # Database tier
+  mysql:
+    image: mysql:5.7.22
+    container_name: app-mysql
+    restart: always
+    environment:
+      - MYSQL_DATABASE=dev
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=app
+      - MYSQL_PASSWORD=apppass
+    volumes:
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+    ports:
+      - 8982:3306
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+#nginx > app.conf
+#start of app.conf
+server {
+    listen 80;
+    index index.php index.html;
+    error_log  /var/log/nginx/app.error.log;
+    access_log /var/log/nginx/app.access.log;
+
+    root /var/www/site/public;
+
+    location ~ \.php$ {
+        fastcgi_buffer_size 32k;
+       fastcgi_buffers 4 32k;
+        try_files $uri =404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass app:9000;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+        gzip_static on;
+    }
+}
+#end of app.conf
+
+#php > DockerFile
+#start of DockerFile
+FROM php:8.0.0-fpm
+
+RUN apt-get update && apt-get install -y git
+#In this place you can specify all the extensions you need.
+RUN docker-php-ext-install pdo_mysql
+
+RUN apt-get install -y \
+        libzip-dev \
+        zip \
+	libicu-dev \
+  && docker-php-ext-install zip
+
+RUN docker-php-ext-install intl
+
+COPY --from=composer:2.0.9 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www
+#end of DockerFile
+
+#Go Into php container
+docker exec -it app-php bash
+
+cd site/
+
+#RUN Migrations
+php bin/console --env=test doctrine:database:create
+php bin/console doctrine:migration:diff
+php bin/console doctrine:migration:migrate
+
+#Load Fixtures
+php bin/console --env=test doctrine:fixtures:load
+
+#RUN Tests
+php bin/phpunit 
+
+#Command to get cheapest pharmacies 
+php bin/console products:search-cheapest <product>

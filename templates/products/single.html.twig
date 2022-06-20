@@ -1,0 +1,30 @@
+{# templates/products/index.html.twig #}
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<h3 style="text-align:center;">Pharmacies of Product <b>{% if product %} {{product[0].getProduct().getTitle()}} {% endif %}</b></h3>
+{% if product %}
+    <div class="table-responsive">
+      <table class="table">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Available</th>
+        </tr>
+        {% for prod in product %}        
+        <tr class="block">
+            <td class="in-block">{{ prod.id }}</td>
+            <td class="in-block">{{ prod.pharmacy.getName() }}</td>
+            <td class="in-block">{{ prod.available }}</td>
+        <tr>
+        {% endfor %}
+      </table>
+</div>
+{% else %}
+<p style="text-align:center;">No Pharmacies Available</p>
+{% endif %}
