@@ -110,6 +110,12 @@ docker exec -it app-php bash
 
 cd site/
 
+#Visit Apis to view list of APIs
+http://localhost:8001/api/
+
+#Visit Search api
+http://localhost:8001/api/product/search/
+
 #RUN Migrations
 php bin/console --env=test doctrine:database:create
 php bin/console doctrine:migration:diff
